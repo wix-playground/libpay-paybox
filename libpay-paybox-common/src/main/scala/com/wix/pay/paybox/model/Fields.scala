@@ -1,0 +1,25 @@
+package com.wix.pay.paybox.model
+
+object Fields {
+  val version = "VERSION"
+  val `type` = "TYPE"
+  val site = "SITE"
+  val rang = "RANG"
+  val cle = "CLE"
+  val numQuestion = "NUMQUESTION"
+  val montant = "MONTANT"
+  val devise = "DEVISE"
+  val reference = "REFERENCE"
+  val porteur = "PORTEUR"
+  val dateVal = "DATEVAL"
+  val cvv = "CVV"
+  val activite = "ACTIVITE"
+  val dateQ = "DATEQ"
+  val pays = "PAYS"
+  val numTrans = "NUMTRANS"
+  val numAppel = "NUMAPPEL"
+  val codeResponse = "CODEREPONSE"
+  val commentaire = "COMMENTAIRE"
+  val authorisation = "AUTORISATION"
+  val refabonne = "REFABONNE"
+}

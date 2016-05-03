@@ -30,11 +30,11 @@ class PayboxDriver(port: Int) {
     probe.handlers.clear()
   }
 
-  def anAuthorizeRequestFor(site: String,
-                            rang: String,
-                            cle: String,
-                            card: CreditCard,
-                            currencyAmount: CurrencyAmount): RequestCtx = {
+  def anAuthorizeFor(site: String,
+                     rang: String,
+                     cle: String,
+                     card: CreditCard,
+                     currencyAmount: CurrencyAmount): RequestCtx = {
     val params = PayboxHelper.createAuthorizeRequest(
       site = site,
       rang = rang,
@@ -52,6 +52,34 @@ class PayboxDriver(port: Int) {
       rang = rang,
       params = params)
   }
+
+  def aVoidAuthorizationFor(site: String,
+                            rang: String,
+                            cle: String,
+                            numTrans: String,
+                            numAppel: String,
+                            numQuestion: String,
+                            devise: String,
+                            reference: String,
+                            dateQ: String): RequestCtx = {
+    val params = PayboxHelper.createCancelRequest(
+      site = site,
+      rang = rang,
+      cle = cle,
+      numTrans = numTrans,
+      numAppel = numAppel,
+      numQuestion = numQuestion,
+      devise = devise,
+      reference = reference,
+      dateQ = dateQ
+    ).mapValues(Some(_))
+
+    new RequestCtx(
+      site = site,
+      rang = rang,
+      params = params)
+  }
+
 
   def aRequestFor(site: String, rang: String, params: Map[String, Option[String]]): RequestCtx = {
     new RequestCtx(

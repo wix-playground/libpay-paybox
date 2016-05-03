@@ -52,7 +52,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
         expiration = YearMonth(2020, 12),
         additionalFields = Some(someAdditionalFields))
 
-      driver.anAuthorizeRequestFor(
+      driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
         cle = someMerchant.cle,
@@ -87,7 +87,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
       val someNumAppel = "someNumAppel"
       val someNumQuestion = "someNumQuestion"
 
-      driver.anAuthorizeRequestFor(
+      driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
         cle = someMerchant.cle,
@@ -133,7 +133,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
         additionalFields = Some(CreditCardOptionalFields(
           csc = Some("123"))))
 
-      driver.anAuthorizeRequestFor(
+      driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
         cle = someMerchant.cle,
@@ -224,23 +224,16 @@ class PayboxGatewayIT extends SpecWithJUnit {
       )
       val authorizationKey = authorizationParser.stringify(someAuthorization)
 
-      driver.aRequestFor(
+      driver.aVoidAuthorizationFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
-        params = Map(
-          Fields.version -> Some(Versions.PAYBOX_DIRECT),
-          Fields.`type` -> Some(RequestTypes.CANCEL),
-          Fields.site -> Some(someMerchant.site),
-          Fields.rang -> Some(someMerchant.rang),
-          Fields.cle -> Some(someMerchant.cle),
-          Fields.numQuestion -> Some(someAuthorization.numQuestion),
-          Fields.montant -> Some(Conversions.toPayboxAmount(0)),
-          Fields.devise -> Some(someAuthorization.devise),
-          Fields.reference -> Some(someAuthorization.reference),
-          Fields.numTrans -> Some(someAuthorization.numTrans),
-          Fields.numAppel -> Some(someAuthorization.numAppel),
-          Fields.dateQ -> Some(someAuthorization.dateQ)
-        )
+        cle = someMerchant.cle,
+        numTrans = someAuthorization.numTrans,
+        numAppel = someAuthorization.numAppel,
+        numQuestion = someAuthorization.numQuestion,
+        devise = someAuthorization.devise,
+        reference = someAuthorization.reference,
+        dateQ = someAuthorization.dateQ
       ) returns(
         numTrans = someAuthorization.numTrans,
         numAppel = someAuthorization.numAppel,

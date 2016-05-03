@@ -27,6 +27,30 @@ class PayboxGatewayIT extends SpecWithJUnit {
     val merchantParser = new JsonPayboxMerchantParser()
     val authorizationParser = new JsonPayboxAuthorizationParser()
 
+    val someMerchant = PayboxMerchant(
+      site = "someSite",
+      rang = "someRang",
+      cle = "someCle"
+    )
+    val merchantKey = merchantParser.stringify(someMerchant)
+
+    val someCurrencyAmount = CurrencyAmount("USD", 33.3)
+    val someCreditCard = CreditCard(
+      number = "4012888818888",
+      expiration = YearMonth(2020, 12),
+      additionalFields = Some(CreditCardOptionalFields(
+        csc = Some("123"))))
+
+    val someAuthorization = PayboxAuthorization(
+      numTrans = "someNumTrans",
+      numAppel = "someNumAppel",
+      numQuestion = "someNumQuestion",
+      devise = "someDevise",
+      reference = "someReference",
+      dateQ = "someDateQ"
+    )
+    val authorizationKey = authorizationParser.stringify(someAuthorization)
+
     val paybox: PaymentGateway = new PayboxGateway(
       requestFactory = requestFactory,
       endpointUrl = s"http://localhost:$payboxPort/",
@@ -38,20 +62,6 @@ class PayboxGatewayIT extends SpecWithJUnit {
 
   "authorize request via PayBox gateway" should {
     "gracefully fail on invalid merchant key" in new Ctx {
-      val someMerchant = PayboxMerchant(
-        site = "someSite",
-        rang = "someRang",
-        cle = "someCle"
-      )
-      val merchantKey = merchantParser.stringify(someMerchant)
-
-      val someCurrencyAmount = CurrencyAmount("USD", 33.3)
-      val someAdditionalFields = CreditCardOptionalFields(csc = Some("123"))
-      val someCreditCard = CreditCard(
-        number = "4012888818888",
-        expiration = YearMonth(2020, 12),
-        additionalFields = Some(someAdditionalFields))
-
       driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
@@ -70,23 +80,6 @@ class PayboxGatewayIT extends SpecWithJUnit {
     }
 
     "successfully yield an authorization key on valid request" in new Ctx {
-      val someMerchant = PayboxMerchant(
-        site = "someSite",
-        rang = "someRang",
-        cle = "someCle"
-      )
-      val someMerchantKey = merchantParser.stringify(someMerchant)
-      val someCurrencyAmount = CurrencyAmount("USD", 33.3)
-      val someCreditCard = CreditCard(
-        number = "4012888818888",
-        expiration = YearMonth(2020, 12),
-        additionalFields = Some(CreditCardOptionalFields(
-          csc = Some("123"))))
-
-      val someNumTrans = "someNumTrans"
-      val someNumAppel = "someNumAppel"
-      val someNumQuestion = "someNumQuestion"
-
       driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
@@ -94,21 +87,21 @@ class PayboxGatewayIT extends SpecWithJUnit {
         card = someCreditCard,
         currencyAmount = someCurrencyAmount
       ) returns(
-        numTrans = someNumTrans,
-        numAppel = someNumAppel,
-        numQuestion = someNumQuestion // In a perfect world, this should use the client supplied value
+        numTrans = someAuthorization.numTrans,
+        numAppel = someAuthorization.numAppel,
+        numQuestion = someAuthorization.numQuestion // In a perfect world, this should use the client supplied value
       )
 
       paybox.authorize(
-        merchantKey = someMerchantKey,
+        merchantKey = merchantKey,
         creditCard = someCreditCard,
         currencyAmount = someCurrencyAmount
       ) must beASuccessfulTry(
         check = beAuthorizationKey(
           authorization = beAuthorization(
-            numTrans = ===(someNumTrans),
-            numAppel = ===(someNumAppel),
-            numQuestion = ===(someNumQuestion),
+            numTrans = ===(someAuthorization.numTrans),
+            numAppel = ===(someAuthorization.numAppel),
+            numQuestion = ===(someAuthorization.numQuestion),
             devise = ===(Conversions.toPayboxCurrency(someCurrencyAmount.currency)),
             reference = not(beEmpty),
             dateQ = not(beEmpty)
@@ -118,21 +111,6 @@ class PayboxGatewayIT extends SpecWithJUnit {
     }
 
     "gracefully fail on rejected card" in new Ctx {
-      val someMerchant = PayboxMerchant(
-        site = "someSite",
-        rang = "someRang",
-        cle = "someCle"
-      )
-      val merchantKey = merchantParser.stringify(someMerchant)
-
-      val someCurrencyAmount = CurrencyAmount("USD", 33.3)
-
-      val someCreditCard = CreditCard(
-        number = "4012888818888",
-        expiration = YearMonth(2020, 12),
-        additionalFields = Some(CreditCardOptionalFields(
-          csc = Some("123"))))
-
       driver.anAuthorizeFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
@@ -153,42 +131,19 @@ class PayboxGatewayIT extends SpecWithJUnit {
 
   "capture request via PayBox gateway" should {
     "successfully yield a transaction ID on valid request" in new Ctx {
-      val someMerchant = PayboxMerchant(
-        site = "someSite",
-        rang = "someRang",
-        cle = "someCle"
-      )
-      val merchantKey = merchantParser.stringify(someMerchant)
-
-      val someAuthorization = PayboxAuthorization(
-        numTrans = "someNumTrans",
-        numAppel = "someNumAppel",
-        numQuestion = "someNumQuestion",
-        devise = "someDevise",
-        reference = "someReference",
-        dateQ = "someDateQ"
-      )
-      val authorizationKey = authorizationParser.stringify(someAuthorization)
-
       val someAmount = 11.1
 
-      driver.aRequestFor(
+      driver.aCaptureFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
-        params = Map(
-          Fields.version -> Some(Versions.PAYBOX_DIRECT),
-          Fields.`type` -> Some(RequestTypes.CAPTURE),
-          Fields.site -> Some(someMerchant.site),
-          Fields.rang -> Some(someMerchant.rang),
-          Fields.cle -> Some(someMerchant.cle),
-          Fields.numQuestion -> Some(someAuthorization.numQuestion),
-          Fields.montant -> Some(Conversions.toPayboxAmount(someAmount)),
-          Fields.devise -> Some(someAuthorization.devise),
-          Fields.reference -> Some(someAuthorization.reference),
-          Fields.numTrans -> Some(someAuthorization.numTrans),
-          Fields.numAppel -> Some(someAuthorization.numAppel),
-          Fields.dateQ -> Some(someAuthorization.dateQ)
-        )
+        cle = someMerchant.cle,
+        numTrans = someAuthorization.numTrans,
+        numAppel = someAuthorization.numAppel,
+        numQuestion = someAuthorization.numQuestion,
+        devise = someAuthorization.devise,
+        reference = someAuthorization.reference,
+        dateQ = someAuthorization.dateQ,
+        amount = someAmount
       ) returns(
         numAppel = someAuthorization.numAppel,
         numTrans = someAuthorization.numTrans,
@@ -207,23 +162,6 @@ class PayboxGatewayIT extends SpecWithJUnit {
 
   "voidAuthorization request via PayBox gateway" should {
     "successfully yield a transaction ID on valid request" in new Ctx {
-      val someMerchant = PayboxMerchant(
-        site = "someSite",
-        rang = "someRang",
-        cle = "someCle"
-      )
-      val merchantKey = merchantParser.stringify(someMerchant)
-
-      val someAuthorization = PayboxAuthorization(
-        numTrans = "someNumTrans",
-        numAppel = "someNumAppel",
-        numQuestion = "someNumQuestion",
-        devise = "someDevise",
-        reference = "someReference",
-        dateQ = "someDateQ"
-      )
-      val authorizationKey = authorizationParser.stringify(someAuthorization)
-
       driver.aVoidAuthorizationFor(
         site = someMerchant.site,
         rang = someMerchant.rang,

@@ -80,8 +80,28 @@ class PayboxDriver(port: Int) {
       params = params)
   }
 
-
-  def aRequestFor(site: String, rang: String, params: Map[String, Option[String]]): RequestCtx = {
+  def aCaptureFor(site: String,
+                  rang: String,
+                  cle: String,
+                  numTrans: String,
+                  numAppel: String,
+                  numQuestion: String,
+                  devise: String,
+                  reference: String,
+                  dateQ: String,
+                  amount: Double): RequestCtx = {
+    val params = PayboxHelper.createCaptureRequest(
+      site = site,
+      rang = rang,
+      cle = cle,
+      numTrans = numTrans,
+      numAppel = numAppel,
+      numQuestion = numQuestion,
+      devise = devise,
+      reference = reference,
+      dateQ = dateQ,
+      amount = amount
+    ).mapValues(Some(_))
     new RequestCtx(
       site = site,
       rang = rang,

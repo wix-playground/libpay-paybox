@@ -6,6 +6,7 @@ import java.util.{List => JList}
 
 import com.google.api.client.http.{UrlEncodedContent, UrlEncodedParser}
 import com.wix.hoopoe.http.testkit.EmbeddedHttpProbe
+import com.wix.pay.paybox.model.{ErrorCodes, Fields}
 import spray.http._
 
 import scala.collection.JavaConversions._
@@ -26,12 +27,62 @@ class PayboxDriver(port: Int) {
     probe.handlers.clear()
   }
 
-  def aRequestFor(params: Map[String, Option[String]]): RequestCtx = {
-    new RequestCtx(params)
+  def aRequestFor(site: String, rang: String, params: Map[String, Option[String]]): RequestCtx = {
+    new RequestCtx(
+      site = site,
+      rang = rang,
+      params = params)
   }
 
-  class RequestCtx(params: Map[String, Option[String]]) {
-    def returns(responseParams: Map[String, String]) {
+  class RequestCtx(site: String,
+                   rang: String,
+                   params: Map[String, Option[String]]) {
+    def returns(numTrans: String,
+                numAppel: String,
+                numQuestion: String): Unit = {
+      returns(Map(
+        Fields.numTrans -> numTrans,
+        Fields.numAppel -> numAppel,
+        Fields.numQuestion -> numQuestion,
+        Fields.site -> site,
+        Fields.rang -> rang,
+        Fields.authorisation -> "someAuthorization",
+        Fields.codeResponse -> ErrorCodes.SUCCESS,
+        Fields.commentaire -> "Demande traitée avec succès",
+        Fields.refabonne -> "",
+        Fields.porteur -> ""
+      ))
+    }
+
+    def isRejected(): Unit = {
+      returns(Map(
+        Fields.numTrans -> "someNumTrans",
+        Fields.numAppel -> "someNumAppel",
+        Fields.numQuestion -> "0000000001", // Just some random value
+        Fields.site -> site,
+        Fields.rang -> rang,
+        Fields.authorisation -> "XXXXXX",
+        Fields.codeResponse -> ErrorCodes.INVALID_CARDHOLDER_NUMBER,
+        Fields.commentaire -> "PAYBOX : Numéro de porteur invalide",
+        Fields.refabonne -> "",
+        Fields.porteur -> ""
+      ))
+    }
+
+    def isUnauthorized(): Unit = {
+      returns(Map(
+        Fields.numTrans -> "0000000000",
+        Fields.numAppel -> "0000000000",
+        Fields.numQuestion -> "0000000001", // Just some random value
+        Fields.site -> site,
+        Fields.rang -> rang,
+        Fields.authorisation -> "000000",
+        Fields.codeResponse -> ErrorCodes.NO_ACCESS,
+        Fields.commentaire -> "Non autorise"
+      ))
+    }
+
+    def returns(responseParams: Map[String, String]): Unit = {
       probe.handlers += {
         case HttpRequest(
         HttpMethods.POST,

@@ -34,10 +34,11 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
 
       val merchant = merchantParser.parse(merchantKey)
 
-      val request = createAuthorizeOrSaleRequest(
-        requestType = RequestTypes.AUTHORIZATION_ONLY,
-        merchant = merchant,
-        creditCard = creditCard,
+      val request = PayboxHelper.createAuthorizeRequest(
+        site = merchant.site,
+        rang = merchant.rang,
+        cle = merchant.cle,
+        card = creditCard,
         currencyAmount = currencyAmount
       )
       val response = doRequest(request)
@@ -87,10 +88,17 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
       val merchant = merchantParser.parse(merchantKey)
       val authorization = authorizationParser.parse(authorizationKey)
 
-      val request = createCaptureOrCancelRequest(
-        requestType = RequestTypes.CAPTURE,
-        merchant = merchant,
-        authorization = authorization,
+
+      val request = PayboxHelper.createCaptureRequest(
+        site = merchant.site,
+        rang = merchant.rang,
+        cle = merchant.cle,
+        numTrans = authorization.numTrans,
+        numAppel = authorization.numAppel,
+        numQuestion = authorization.numQuestion,
+        devise = authorization.devise,
+        reference = authorization.reference,
+        dateQ = authorization.dateQ,
         amount = amount
       )
       val response = doRequest(request)
@@ -109,10 +117,11 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
 
       val merchant = merchantParser.parse(merchantKey)
 
-      val request = createAuthorizeOrSaleRequest(
-        requestType = RequestTypes.AUTHORIZATION_CAPTURE,
-        merchant = merchant,
-        creditCard = creditCard,
+      val request = PayboxHelper.createSaleRequest(
+        site = merchant.site,
+        rang = merchant.rang,
+        cle = merchant.cle,
+        card = creditCard,
         currencyAmount = currencyAmount
       )
       val response = doRequest(request)
@@ -130,10 +139,16 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
       val merchant = merchantParser.parse(merchantKey)
       val authorization = authorizationParser.parse(authorizationKey)
 
-      val request = createCaptureOrCancelRequest(
-        requestType = RequestTypes.CANCEL,
-        merchant = merchant,
-        authorization = authorization
+      val request = PayboxHelper.createCancelRequest(
+        site = merchant.site,
+        rang = merchant.rang,
+        cle = merchant.cle,
+        numTrans = authorization.numTrans,
+        numAppel = authorization.numAppel,
+        numQuestion = authorization.numQuestion,
+        devise = authorization.devise,
+        reference = authorization.reference,
+        dateQ = authorization.dateQ
       )
       val response = doRequest(request)
 
@@ -145,47 +160,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     }
   }
 
-  private def createAuthorizeOrSaleRequest(requestType: String, merchant: PayboxMerchant, creditCard: CreditCard,
-                                           currencyAmount: CurrencyAmount): Map[String, String] = {
-    val timestamp = System.currentTimeMillis
-    Map(
-      Fields.version -> Versions.PAYBOX_DIRECT,
-      Fields.`type` -> requestType,
-      Fields.site -> merchant.site,
-      Fields.rang -> merchant.rang,
-      Fields.cle -> merchant.cle,
-      Fields.numQuestion -> (timestamp / 1000).toString, // numQuestion must be in the range 1-2147483647
-      Fields.montant -> Conversions.toPayboxAmount(currencyAmount.amount),
-      Fields.devise -> Conversions.toPayboxCurrency(currencyAmount.currency),
-      Fields.reference -> timestamp.toString,
-      Fields.porteur -> creditCard.number,
-      Fields.dateVal -> Conversions.toPayboxYearMonth(
-        year = creditCard.expiration.year,
-        month = creditCard.expiration.month
-      ),
-      Fields.cvv -> creditCard.csc.get,
-      Fields.activite -> Sources.INTERNET, // optional
-      Fields.dateQ -> Conversions.toPayboxDateTime(timestamp)
-    )
-  }
 
-  private def createCaptureOrCancelRequest(requestType: String, merchant: PayboxMerchant, authorization: PayboxAuthorization,
-                                           amount: Double = 0): Map[String, String] = {
-    Map(
-      Fields.version -> Versions.PAYBOX_DIRECT,
-      Fields.`type` -> requestType,
-      Fields.site -> merchant.site,
-      Fields.rang -> merchant.rang,
-      Fields.cle -> merchant.cle,
-      Fields.numQuestion -> authorization.numQuestion,
-      Fields.montant -> Conversions.toPayboxAmount(amount),
-      Fields.devise -> authorization.devise,
-      Fields.reference -> authorization.reference,
-      Fields.numTrans -> authorization.numTrans,
-      Fields.numAppel -> authorization.numAppel,
-      Fields.dateQ -> authorization.dateQ
-    )
-  }
 
   private def verifyPayboxResponse(response: Map[String, String]): Unit = {
     val code = response(Fields.codeResponse)

@@ -52,27 +52,12 @@ class PayboxGatewayIT extends SpecWithJUnit {
         expiration = YearMonth(2020, 12),
         additionalFields = Some(someAdditionalFields))
 
-      driver.aRequestFor(
+      driver.anAuthorizeRequestFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
-        params = Map(
-          Fields.version -> Some(Versions.PAYBOX_DIRECT),
-          Fields.`type` -> Some(RequestTypes.AUTHORIZATION_ONLY),
-          Fields.site -> Some(someMerchant.site),
-          Fields.rang -> Some(someMerchant.rang),
-          Fields.cle -> Some(someMerchant.cle),
-          Fields.numQuestion -> None,
-          Fields.montant -> Some(Conversions.toPayboxAmount(someCurrencyAmount.amount)),
-          Fields.devise -> Some(Conversions.toPayboxCurrency(someCurrencyAmount.currency)),
-          Fields.reference -> None,
-          Fields.porteur -> Some(someCreditCard.number),
-          Fields.dateVal -> Some(Conversions.toPayboxYearMonth(
-            year = someCreditCard.expiration.year,
-            month = someCreditCard.expiration.month
-          )),
-          Fields.cvv -> Some(someCreditCard.csc.get),
-          Fields.dateQ -> None
-        )
+        cle = someMerchant.cle,
+        card = someCreditCard,
+        currencyAmount = someCurrencyAmount
       ) isUnauthorized()
 
       paybox.authorize(
@@ -102,26 +87,12 @@ class PayboxGatewayIT extends SpecWithJUnit {
       val someNumAppel = "someNumAppel"
       val someNumQuestion = "someNumQuestion"
 
-      driver.aRequestFor(
+      driver.anAuthorizeRequestFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
-        params = Map(
-          Fields.version -> Some(Versions.PAYBOX_DIRECT),
-          Fields.`type` -> Some(RequestTypes.AUTHORIZATION_ONLY),
-          Fields.site -> Some(someMerchant.site),
-          Fields.rang -> Some(someMerchant.rang),
-          Fields.cle -> Some(someMerchant.cle),
-          Fields.numQuestion -> None,
-          Fields.montant -> Some(Conversions.toPayboxAmount(someCurrencyAmount.amount)),
-          Fields.devise -> Some(Conversions.toPayboxCurrency(someCurrencyAmount.currency)),
-          Fields.reference -> None,
-          Fields.porteur -> Some(someCreditCard.number),
-          Fields.dateVal -> Some(Conversions.toPayboxYearMonth(
-            year = someCreditCard.expiration.year,
-            month = someCreditCard.expiration.month
-          )),
-          Fields.cvv -> Some(someCreditCard.csc.get),
-          Fields.dateQ -> None)
+        cle = someMerchant.cle,
+        card = someCreditCard,
+        currencyAmount = someCurrencyAmount
       ) returns(
         numTrans = someNumTrans,
         numAppel = someNumAppel,
@@ -162,27 +133,12 @@ class PayboxGatewayIT extends SpecWithJUnit {
         additionalFields = Some(CreditCardOptionalFields(
           csc = Some("123"))))
 
-      driver.aRequestFor(
+      driver.anAuthorizeRequestFor(
         site = someMerchant.site,
         rang = someMerchant.rang,
-        params = Map(
-          Fields.version -> Some(Versions.PAYBOX_DIRECT),
-          Fields.`type` -> Some(RequestTypes.AUTHORIZATION_ONLY),
-          Fields.site -> Some(someMerchant.site),
-          Fields.rang -> Some(someMerchant.rang),
-          Fields.cle -> Some(someMerchant.cle),
-          Fields.numQuestion -> None,
-          Fields.montant -> Some(Conversions.toPayboxAmount(someCurrencyAmount.amount)),
-          Fields.devise -> Some(Conversions.toPayboxCurrency(someCurrencyAmount.currency)),
-          Fields.reference -> None,
-          Fields.porteur -> Some(someCreditCard.number),
-          Fields.dateVal -> Some(Conversions.toPayboxYearMonth(
-            year = someCreditCard.expiration.year,
-            month = someCreditCard.expiration.month
-          )),
-          Fields.cvv -> Some(someCreditCard.csc.get),
-          Fields.dateQ -> None
-        )
+        cle = someMerchant.cle,
+        card = someCreditCard,
+        currencyAmount = someCurrencyAmount
       ) isRejected()
 
       paybox.authorize(

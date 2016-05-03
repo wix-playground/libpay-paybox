@@ -6,6 +6,9 @@ import java.util.{List => JList}
 
 import com.google.api.client.http.{UrlEncodedContent, UrlEncodedParser}
 import com.wix.hoopoe.http.testkit.EmbeddedHttpProbe
+import com.wix.pay.creditcard.CreditCard
+import com.wix.pay.model.CurrencyAmount
+import com.wix.pay.paybox.PayboxHelper
 import com.wix.pay.paybox.model.{ErrorCodes, Fields}
 import spray.http._
 
@@ -25,6 +28,29 @@ class PayboxDriver(port: Int) {
 
   def resetProbe() {
     probe.handlers.clear()
+  }
+
+  def anAuthorizeRequestFor(site: String,
+                            rang: String,
+                            cle: String,
+                            card: CreditCard,
+                            currencyAmount: CurrencyAmount): RequestCtx = {
+    val params = PayboxHelper.createAuthorizeRequest(
+      site = site,
+      rang = rang,
+      cle = cle,
+      card = card,
+      currencyAmount = currencyAmount
+    ).map {
+      case (Fields.numQuestion, _) => (Fields.numQuestion, None)
+      case (Fields.reference, _) => (Fields.reference, None)
+      case (field, value) => (field, Some(value))
+    }
+
+    new RequestCtx(
+      site = site,
+      rang = rang,
+      params = params)
   }
 
   def aRequestFor(site: String, rang: String, params: Map[String, Option[String]]): RequestCtx = {

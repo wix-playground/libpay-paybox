@@ -54,7 +54,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     } match {
       case Success(authorizationKey) => Success(authorizationKey)
       case Failure(e: PaymentException) => Failure(e)
-      case Failure(e) => Failure(new PaymentErrorException(e.getMessage, e))
+      case Failure(e) => Failure(PaymentErrorException(e.getMessage, e))
     }
   }
 
@@ -107,7 +107,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     } match {
       case Success(numTrans) => Success(numTrans)
       case Failure(e: PaymentException) => Failure(e)
-      case Failure(e) => Failure(new PaymentErrorException(e.getMessage, e))
+      case Failure(e) => Failure(PaymentErrorException(e.getMessage, e))
     }
   }
 
@@ -130,7 +130,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     } match {
       case Success(authorizationKey) => Success(authorizationKey)
       case Failure(e: PaymentException) => Failure(e)
-      case Failure(e) => Failure(new PaymentErrorException(e.getMessage, e))
+      case Failure(e) => Failure(PaymentErrorException(e.getMessage, e))
     }
   }
 
@@ -156,7 +156,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     } match {
       case Success(numTrans) => Success(numTrans)
       case Failure(e: PaymentException) => Failure(e)
-      case Failure(e) => Failure(new PaymentErrorException(e.getMessage, e))
+      case Failure(e) => Failure(PaymentErrorException(e.getMessage, e))
     }
   }
 
@@ -171,9 +171,9 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
       case ErrorCodes.INVALID_CARDHOLDER_NUMBER|
            ErrorCodes.INVALID_EXPIRATION|
            ErrorCodes.UNAUTHORIZED_CARD|
-           ErrorCodes.UNAUTHORIZED_COUNTRY => throw new PaymentRejectedException(message)
-      case IsAuthorizationError(authorizationCode) => throw new PaymentRejectedException(message)
-      case _ => throw new PaymentErrorException(message)
+           ErrorCodes.UNAUTHORIZED_COUNTRY => throw PaymentRejectedException(message)
+      case IsAuthorizationError(authorizationCode) => throw PaymentRejectedException(message)
+      case _ => throw PaymentErrorException(message)
     }
   }
 

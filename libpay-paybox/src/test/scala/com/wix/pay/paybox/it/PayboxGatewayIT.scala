@@ -2,7 +2,7 @@ package com.wix.pay.paybox.it
 
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.wix.pay.creditcard.{CreditCard, CreditCardOptionalFields, YearMonth}
-import com.wix.pay.model.CurrencyAmount
+import com.wix.pay.model.{CurrencyAmount, Payment}
 import com.wix.pay.paybox.PayboxMatchers._
 import com.wix.pay.paybox._
 import com.wix.pay.paybox.model._
@@ -35,6 +35,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
     val merchantKey = merchantParser.stringify(someMerchant)
 
     val someCurrencyAmount = CurrencyAmount("USD", 33.3)
+    val somePayment = Payment(someCurrencyAmount, 1)
     val someCreditCard = CreditCard(
       number = "4012888818888",
       expiration = YearMonth(2020, 12),
@@ -73,7 +74,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
       paybox.authorize(
         merchantKey = merchantKey,
         creditCard = someCreditCard,
-        currencyAmount = someCurrencyAmount
+        payment = somePayment
       ) must beAFailedTry(
         check = beAnInstanceOf[PaymentErrorException]
       )
@@ -95,7 +96,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
       paybox.authorize(
         merchantKey = merchantKey,
         creditCard = someCreditCard,
-        currencyAmount = someCurrencyAmount
+        payment = somePayment
       ) must beASuccessfulTry(
         check = beAuthorizationKey(
           authorization = beAuthorization(
@@ -122,7 +123,7 @@ class PayboxGatewayIT extends SpecWithJUnit {
       paybox.authorize(
         merchantKey = merchantKey,
         creditCard = someCreditCard,
-        currencyAmount = someCurrencyAmount
+        payment = somePayment
       ) must beAFailedTry(
         check = beAnInstanceOf[PaymentRejectedException]
       )

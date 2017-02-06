@@ -5,7 +5,7 @@ import java.util.{List => JList}
 
 import com.google.api.client.http._
 import com.wix.pay.creditcard.CreditCard
-import com.wix.pay.model.{CurrencyAmount, Customer, Deal}
+import com.wix.pay.model.{Customer, Deal, Payment}
 import com.wix.pay.paybox.model._
 import com.wix.pay.{PaymentErrorException, PaymentException, PaymentGateway, PaymentRejectedException}
 
@@ -28,9 +28,10 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
                     merchantParser: PayboxMerchantParser = new JsonPayboxMerchantParser,
                     authorizationParser: PayboxAuthorizationParser = new JsonPayboxAuthorizationParser) extends PaymentGateway {
 
-  override def authorize(merchantKey: String, creditCard: CreditCard, currencyAmount: CurrencyAmount, customer: Option[Customer], deal: Option[Deal]): Try[String] = {
+  override def authorize(merchantKey: String, creditCard: CreditCard, payment: Payment, customer: Option[Customer], deal: Option[Deal]): Try[String] = {
     Try {
       require(creditCard.csc.isDefined, "CSC is mandatory for PayBox")
+      require(payment.installments == 1, "PayBox does not support installments")
 
       val merchant = merchantParser.parse(merchantKey)
 
@@ -39,7 +40,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
         rang = merchant.rang,
         cle = merchant.cle,
         card = creditCard,
-        currencyAmount = currencyAmount
+        currencyAmount = payment.currencyAmount
       )
       val response = doRequest(request)
 
@@ -111,9 +112,10 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
     }
   }
 
-  override def sale(merchantKey: String, creditCard: CreditCard, currencyAmount: CurrencyAmount, customer: Option[Customer], deal: Option[Deal]): Try[String] = {
+  override def sale(merchantKey: String, creditCard: CreditCard, payment: Payment, customer: Option[Customer], deal: Option[Deal]): Try[String] = {
     Try {
       require(creditCard.csc.isDefined, "CSC is mandatory for PayBox")
+      require(payment.installments == 1, "PayBox does not support installments")
 
       val merchant = merchantParser.parse(merchantKey)
 
@@ -122,7 +124,7 @@ class PayboxGateway(requestFactory: HttpRequestFactory,
         rang = merchant.rang,
         cle = merchant.cle,
         card = creditCard,
-        currencyAmount = currencyAmount
+        currencyAmount = payment.currencyAmount
       )
       val response = doRequest(request)
 

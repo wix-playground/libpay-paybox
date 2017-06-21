@@ -79,6 +79,6 @@ lazy val root = Project(
   id = "root"
   , base = file(".")
   , settings = noPublish
-).aggregate(libpayPaybox, libpayPayboxTestkit)
+).aggregate(libpayPayboxCommon, libpayPayboxTestkit, libpayPaybox)
 
 

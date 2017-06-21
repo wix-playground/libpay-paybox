@@ -45,7 +45,7 @@ pomExtra in ThisBuild :=
       </developer>
     </developers>
 
-lazy val libpayPayboxCommon = Project(
+lazy val common = Project(
   id = "libpay-paybox-common"
   , base = file("libpay-paybox-common")
   , settings = Seq(name := "libpay-paybox-common") ++
@@ -57,21 +57,21 @@ lazy val libpayPayboxCommon = Project(
       } , "commons-codec" % "commons-codec" % "1.10" ))
 )
 
-lazy val libpayPayboxTestkit = Project(
+lazy val testkit = Project(
   id = "libpay-paybox-testkit"
   , base = file("libpay-paybox-testkit")
   , settings = Seq(name := "libpay-paybox-testkit") ++
     Seq(libraryDependencies ++= Seq("com.wix.pay" %% "libpay-api" % "1.6.0-SNAPSHOT"
                                    ,"com.wix.hoopoe.http" %% "http-testkit" % "0.0.1"
                                    ,"com.google.http-client" % "google-http-client" % "1.21.0" ))
-).dependsOn(libpayPayboxCommon)
+).dependsOn(common)
 
-lazy val libpayPaybox = Project(
+lazy val main = Project(
   id = "libpay-paybox"
   , base = file("libpay-paybox")
   , settings = Seq(name := "libpay-paybox") ++
     Seq(libraryDependencies += "com.google.http-client" % "google-http-client" % "1.21.0" )
-).dependsOn(libpayPayboxCommon, libpayPayboxTestkit)
+).dependsOn(common, testkit)
 
 lazy val noPublish = Seq(publish := {}, publishLocal := {}, publishArtifact := false)
 
@@ -79,6 +79,6 @@ lazy val root = Project(
   id = "root"
   , base = file(".")
   , settings = noPublish
-).aggregate(libpayPayboxCommon, libpayPayboxTestkit, libpayPaybox)
+).aggregate(common, testkit, main)
 
 

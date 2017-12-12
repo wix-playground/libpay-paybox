@@ -62,7 +62,7 @@ lazy val testkit = Project(
   , base = file("libpay-paybox-testkit")
   , settings = Seq(name := "libpay-paybox-testkit") ++
     Seq(libraryDependencies ++= Seq("com.wix.pay" %% "libpay-api" % "1.6.0-SNAPSHOT"
-                                   ,"com.wix.hoopoe.http" %% "http-testkit" % "0.0.1"
+                                   ,"com.wix" %% "http-testkit" % "0.1.15"
                                    ,"com.google.http-client" % "google-http-client" % "1.21.0" ))
 ).dependsOn(common)
 
